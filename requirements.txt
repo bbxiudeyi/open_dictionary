@@ -1,0 +1,10 @@
+# 运行时依赖(与 pyproject.toml 保持同步,方便 pip install -r)
+PySide6>=6.6,<7
+mss>=9.0
+keyboard>=0.13.5
+rapidocr-onnxruntime>=1.3.7
+numpy>=1.24,<2.0
+ctranslate2>=4.0,<5
+transformers>=4.38,<5
+sentencepiece>=0.1.99
+requests>=2.31

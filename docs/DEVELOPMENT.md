@@ -49,12 +49,29 @@ ruff check app tests    # 代码风格
 
 ```bash
 pip install pyinstaller
-python scripts/build.py
-# 产物:dist/OpenDictionary/OpenDictionary.exe(onedir)
+python scripts/build.py            # PyInstaller + Inno Setup 一条龙
+python scripts/build.py --no-installer  # 只要绿色版目录
 ```
 
+产物:
+
+| 产物 | 大小 | 说明 |
+|---|---|---|
+| `dist/OpenDictionary/` | ~470 MB | 绿色版目录,可压缩直接分发 |
+| `dist/OpenDictionarySetup-0.1.0.exe` | ~130 MB | Inno Setup 安装包(LZMA2) |
+
+安装包行为:
+
+- 按用户安装到 `%LOCALAPPDATA%\Programs\`,**不需要管理员权限**
+- 安装向导最后可选**立即下载翻译模型(623MB)**:默认走 hf-mirror 镜像,
+  可勾选切换官方源;下载完自动做 SHA-256 校验
+- 检测到模型已存在时自动跳过下载(升级/重装场景)
+- 卸载只删程序,**用户数据(模型/词库/配置)保留**在 `%APPDATA%\open-dictionary\`
+- 模型哈希固定在 `installer/open_dictionary.iss` 中,升级模型版本时需同步更新
+
+依赖:编译安装包需要 Inno Setup 6.3+(`winget install JRSoftware.InnoSetup`)。
+
 - onedir 而非 onefile:启动快,杀毒误报率低。
-- 模型**不打包**进安装包;用户首启下载(设置页有进度条与续传)。
 - PyInstaller 产物偶尔被 Defender 误报,可对 exe 签名或引导用户加白名单。
 
 ## 6. 常见问题排查

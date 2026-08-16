@@ -14,7 +14,7 @@ from app import i18n
 
 
 def make_tray_icon() -> QIcon:
-    """程序化画一个图标(蓝底白"译"),避免携带资源文件。"""
+    """程序化画一个图标(蓝底白字 D),避免携带资源文件。"""
     pix = QPixmap(64, 64)
     pix.fill(QColor(0, 0, 0, 0))
     painter = QPainter(pix)
@@ -24,10 +24,10 @@ def make_tray_icon() -> QIcon:
     painter.drawRoundedRect(2, 2, 60, 60, 14, 14)
     painter.setPen(QColor("#ffffff"))
     font = QFont()
-    font.setPixelSize(38)
+    font.setPixelSize(36)
     font.setBold(True)
     painter.setFont(font)
-    painter.drawText(pix.rect(), 0x0084, "译")  # AlignCenter
+    painter.drawText(pix.rect(), 0x0084, "D")  # AlignCenter
     painter.end()
     return QIcon(pix)
 

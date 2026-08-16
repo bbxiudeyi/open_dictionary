@@ -1,38 +1,54 @@
 # Open Dictionary
 
-划词翻译 + 生词本桌面工具(Windows)。完全本地离线,无 API、无遥测。
+[中文说明](README_CN.md)
 
-## 功能
+Snap-and-translate + vocabulary desktop tool for Windows. **Fully offline** — no API, no account, no telemetry.
 
-- **截图翻译**:快捷键 → 鼠标框选 → OCR 识别 → 译文浮窗显示在选区右侧 → ESC 关闭
-- **输入翻译**:快捷键或托盘打开输入窗口,回车翻译
-- **生词本**:翻译结果自动入库,可搜索、删除
-- **本地模型**:NLLB-200-distilled-600M(CTranslate2 int8,~600MB,纯 CPU)
+## Features
 
-## 快速开始
+- **Screenshot translate** — press the hotkey (default `Ctrl+Alt+T`), drag a region on screen, get OCR + translation in a popup right beside your selection. `ESC` to dismiss.
+- **Input translate** — press `Ctrl+Alt+Q` (or single-click the tray icon) and type any text.
+- **Vocabulary** — every translation is auto-saved to a local SQLite database, searchable and deletable.
+- **Local translation model** — NLLB-200-distilled-600M running via CTranslate2 (int8, ~600 MB, pure CPU).
+- **UI language** — English / 中文, switchable in Settings.
 
-```bash
-python -m venv .venv && .venv\Scripts\activate
+## Quick Start (development)
+
+```bat
+python -m venv .venv
+.venv\Scripts\activate
 pip install -r requirements.txt
-python scripts/download_model.py   # 首次:下载模型(~600MB)
+python scripts\download_model.py   & :: first time only, ~600MB via hf-mirror
 python main.py
 ```
 
-默认快捷键:`Ctrl+Alt+T` 截图翻译,`Ctrl+Alt+Q` 输入翻译(可在设置中修改)。
+## Packaging
 
-## 文档
+```bat
+python scripts\build.py
+```
 
-- [架构设计](docs/ARCHITECTURE.md) —— 分层、线程模型、数据流、设计决策
-- [开发指南](docs/DEVELOPMENT.md) —— 环境、模型下载、测试、打包、排障
+Produces a portable folder (`dist\OpenDictionary\`, ~470 MB) and an **Inno Setup installer** (`dist\OpenDictionarySetup-0.1.0.exe`, ~130 MB). The installer can optionally download the translation model during installation (default via hf-mirror.com, SHA-256 verified) and installs per-user without admin rights.
 
-## 目录速览
+## User Data
+
+Everything lives in `%APPDATA%\open-dictionary\`: `vocab.db` (vocabulary), `config.json` (settings), `models\` (NLLB). Back up that folder to migrate; uninstalling the app keeps it.
+
+## Documentation
+
+- [Architecture](docs/ARCHITECTURE.md) — layers, threading model, data flow, design decisions & pitfalls
+- [Development Guide](docs/DEVELOPMENT.md) — setup, model download, tests, packaging, troubleshooting
+
+## Project Layout
 
 ```
-main.py            入口
-app/core/          核心服务(热键/截图/OCR/翻译/词库/模型下载)
-app/ui/            界面(托盘/框选遮罩/结果浮窗/输入/设置/生词本)
-app/controllers/   翻译流程状态机
-app/workers/       线程池任务封装
-scripts/           模型下载 / 打包
-tests/             单元测试
+main.py            entry point
+app/core/          core services (hotkey / capture / OCR / NLLB / vocab / model store)
+app/ui/            windows (tray / capture overlay / result popup / query / settings / vocab)
+app/controllers/   translation flow state machine
+app/workers/       thread-pool task runner
+app/i18n.py        UI strings (zh / en)
+installer/         Inno Setup script (in-install model download)
+scripts/           model download / build
+tests/             unit tests
 ```

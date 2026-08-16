@@ -26,16 +26,21 @@
 
 横切关注点:
 
-- `app/workers`:基于 `QThreadPool` 的通用后台任务封装(`run_in_thread`),
-  所有耗时操作(OCR、翻译、模型下载、模型预热)走这里。
+- `app/workers`:基于 `QThreadPool` 的通用后台任务封装(`run_in_thread`,
+  可选 `timeout_ms` 超时兜底),所有耗时操作(OCR、翻译、模型下载、模型预热)走这里。
+  完成信号挂在**模块级长寿命分发器**上——不能挂在 QRunnable 自己身上,
+  否则任务对象被 GC 时排队中的信号会被静默丢弃(表现为时好时坏的"翻译中"卡住)。
+- `app/i18n`:轻量字典式双语(zh/en)翻译,`tr(key)` 取当前语言文案;
+  语言由设置 `language` 驱动,托盘菜单即时重建,窗口重新打开时生效。
 - `app/settings`:数据模型(`AppSettings`)与持久化(`SettingsStore`)分离,
-  变更通过 `changed` 信号广播(热键管理器监听后自动重注册)。
+  变更通过 `changed` 信号广播(热键管理器/托盘/i18n 监听后自动应用)。
 
 ## 2. 模块职责
 
 | 模块 | 职责 | 关键点 |
 |---|---|---|
 | `main.py` | 组装:服务 → 流程 → 托盘 → 热键 | `QLockFile` 单实例;`setQuitOnLastWindowClosed(False)` 托盘常驻 |
+| `app/i18n.py` | 界面语言(zh/en) | 字典 + `tr()`;窗口重开生效,托盘即时重建 |
 | `core/hotkey.py` | 全局热键注册/注销 | keyboard 库回调在其监听线程,**只 emit 信号**,不碰 UI |
 | `core/capture.py` | mss 截图 + 逻辑/物理像素换算 | DPI 换算集中于此,别处不出现乘法 |
 | `core/ocr.py` | RapidOCR 封装 + 行合并 | 惰性加载;QImage→ndarray(BGR) |
@@ -44,7 +49,7 @@
 | `core/model_store.py` | 模型下载/校验 | 断点续传(Range);最小体积校验;hf-mirror 可配 |
 | `controllers/translate_flow.py` | 状态机 | 唯一知道"整个流程"的地方 |
 | `ui/capture_overlay.py` | 冻结屏 + 框选 | 每屏一个遮罩窗口;选区从**冻结帧**裁剪(所见即所得) |
-| `ui/result_popup.py` | 译文浮窗 | 定位:右→左→下;ESC 关闭 |
+| `ui/result_popup.py` | 译文浮窗 | 松开鼠标即占位("识别中…"),完成后原地更新;定位右→左→下;ESC 关闭 |
 | `ui/query_window.py` | 输入翻译 | 监听 `flow.result_ready` |
 | `ui/settings_dialog.py` | 设置 + 模型下载 UI | 下载在后台线程,进度回调进 UI |
 | `ui/vocab_window.py` | 生词本浏览/搜索/删除 | 右键删除 |
@@ -61,13 +66,17 @@ TranslateFlow.start_capture()
   │     ESC → canceled → 会话清理,回到 idle
   ├─ 松开鼠标 → 选区(全局逻辑 QRect)
   │     → 物理像素换算 → 从冻结帧裁剪 QImage → 关闭全部遮罩
-  ├─ run_in_thread(OCR.recognize)
-  │     空文本 → 浮窗提示"未识别到文字",流程结束
-  ├─ run_in_thread(NllbTranslator.translate)
-  ├─ ResultPopup.show_near(选区右侧) + result_ready 信号
+  ├─ ResultPopup 立即占位显示"识别中…"(选区右侧)
+  ├─ run_in_thread(OCR.recognize, 60s 超时)
+  │     空文本 → 浮窗显示"未识别到文字",流程结束
+  ├─ run_in_thread(NllbTranslator.translate, 30s 超时)
+  ├─ 浮窗原地更新为 原文+译文;result_ready 信号(输入模式消费)
   └─ auto_save_vocab 开启 → VocabStore.add(origin="ocr")
   ESC 关闭浮窗 → 回到 idle,等待下一次热键
 ```
+
+托盘气泡**只用于错误与引导**(OCR/翻译失败、超时、模型未就绪),
+不当进度条用:Windows 气泡固定约 5 秒且不即时替换,快速流水线会残留旧状态。
 
 输入模式:`QueryWindow → flow.translate_text(text) → 翻译 → result_ready → 入库(origin="input")`。
 
@@ -103,6 +112,7 @@ CREATE TABLE entries (
 
 ```json
 {
+  "language": "zh",
   "capture_hotkey": "ctrl+alt+t",
   "query_hotkey": "ctrl+alt+q",
   "target_lang": "zho_Hans",

@@ -103,6 +103,8 @@ ct2-transformers-converter \
 
 - `app/core` 不得 import `PySide6.QtWidgets`(保持可独立测试);QtCore/QtGui
   里的非窗口类型(QImage/QRect)允许。
-- 耗时操作一律 `run_in_thread`,主线程只画界面。
+- 耗时操作一律 `run_in_thread`(支持 `timeout_ms`),主线程只画界面。
+- 界面文案:**中英两份都写**在 `app/i18n.py` 的 `STRINGS` 里,代码用
+  `i18n.tr("key")` 取,不要硬编码中文/英文字符串(日志除外)。
 - 新增设置项:改 `AppSettings` → `settings_dialog` 加控件 → 文档 §5.2 同步。
 - 提交信息用中文短句即可,不必 formal。

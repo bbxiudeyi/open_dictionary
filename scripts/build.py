@@ -26,6 +26,8 @@ def main() -> int:
         "--onedir",
         "--windowed",
         "--name", "OpenDictionary",
+        # rapidocr 的 config.yaml 与内置 OCR 模型是包内数据文件,必须显式收集
+        "--collect-data", "rapidocr_onnxruntime",
         *[arg for ex in EXCLUDES for arg in ("--exclude-module", ex)],
         str(ROOT / "main.py"),
     ]

@@ -17,6 +17,7 @@ from PySide6.QtCore import QLockFile, QTimer
 from PySide6.QtWidgets import QApplication, QMessageBox
 
 from app import logging_setup
+from app import i18n
 from app.constants import APP_DISPLAY_NAME, APP_VERSION
 from app.controllers.translate_flow import TranslateFlow
 from app.core.capture import ScreenService
@@ -52,6 +53,7 @@ def main() -> int:
     # ---- 服务层 ----
     settings_store = SettingsStore(config_path())
     settings = settings_store.settings
+    i18n.set_language(settings.language)  # 界面语言要在创建任何窗口前生效
     vocab = VocabStore(vocab_db_path())
     model_store = ModelStore(models_dir(), endpoint=settings.hf_endpoint)
     ocr_engine = OcrEngine()
@@ -101,15 +103,22 @@ def main() -> int:
             open_query()
 
     # ---- 托盘 ----
-    tray = TrayController(hotkey_hint=settings.capture_hotkey)
+    tray = TrayController()
+    tray.apply_language(settings)
     tray.capture_requested.connect(flow.start_capture)
-    tray.open_query.connect(open_query)
     tray.open_vocab.connect(open_vocab)
     tray.open_settings.connect(open_settings)
     tray.quit.connect(app.quit)
 
     hotkeys.triggered.connect(on_hotkey)
-    settings_store.changed.connect(hotkeys.apply)
+
+
+    def on_settings_changed(new) -> None:
+        hotkeys.apply(new)
+        i18n.set_language(new.language)
+        tray.apply_language(new)  # 托盘菜单/提示立即换语言
+
+    settings_store.changed.connect(on_settings_changed)
     flow.status.connect(lambda msg: tray.show_message(APP_DISPLAY_NAME, msg))
     flow.model_missing.connect(open_settings)
 

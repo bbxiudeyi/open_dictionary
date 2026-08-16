@@ -20,6 +20,8 @@ from typing import Any, Callable
 
 from PySide6.QtCore import QObject, QRunnable, QThreadPool, QTimer, Signal
 
+from app import i18n
+
 logger = logging.getLogger(__name__)
 
 
@@ -100,6 +102,6 @@ def run_in_thread(
             logger.warning("后台任务 %d 超时(%dms),放弃等待", task_id, timeout_ms)
             on_err = cbs[1]
             if on_err is not None:
-                on_err(f"任务超时({timeout_ms // 1000}s),可重试")
+                on_err(i18n.tr("task_timeout").format(timeout_ms // 1000))
 
         QTimer.singleShot(timeout_ms, _timeout)

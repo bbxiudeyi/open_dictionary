@@ -14,6 +14,7 @@ from PySide6.QtCore import QObject, QPoint, QRect, Qt, Signal
 from PySide6.QtGui import QColor, QGuiApplication, QImage, QPainter, QPen, QPixmap
 from PySide6.QtWidgets import QWidget
 
+from app import i18n
 from app.core.capture import ScreenService
 
 logger = logging.getLogger(__name__)
@@ -58,7 +59,7 @@ class CaptureOverlay(QWidget):
             painter.drawText(
                 sel.x() + 4,
                 max(14, sel.y() - 6),
-                f"{sel.width()} x {sel.height()}  松开鼠标开始翻译",
+                f"{sel.width()} x {sel.height()}  {i18n.tr('overlay_hint')}",
             )
         painter.end()
 

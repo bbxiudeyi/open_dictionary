@@ -36,10 +36,11 @@ def test_corrupt_file_falls_back_to_defaults(tmp_path):
 
 
 def test_validate_rejects_bad_values():
-    s = AppSettings(capture_hotkey="t", query_hotkey="t", target_lang="xx_XX")
+    s = AppSettings(capture_hotkey="t", query_hotkey="t", target_lang="xx_XX", language="fr")
     errors = s.validate()
-    assert any("快捷键" in e for e in errors)
-    assert any("目标语言" in e for e in errors)
+    assert "err_hotkey_capture" in errors
+    assert "err_target_lang" in errors
+    assert "err_language" in errors
 
 
 def test_changed_signal_emitted(tmp_path):

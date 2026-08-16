@@ -14,32 +14,35 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from app import i18n
 from app.core.vocab import VocabStore
 
 
 class VocabWindow(QWidget):
-    COLUMNS = ["时间", "原文", "译文", "来源"]
-
     def __init__(self, vocab: VocabStore, parent: QWidget | None = None) -> None:
         super().__init__(parent)
-        self.setWindowTitle("Open Dictionary — 生词本")
+        self.setWindowTitle(i18n.tr("vocab_title"))
         self.resize(680, 420)
         self._vocab = vocab
+        self._columns = [
+            i18n.tr("col_time"), i18n.tr("col_source"),
+            i18n.tr("col_result"), i18n.tr("col_origin"),
+        ]
 
         layout = QVBoxLayout(self)
 
         top = QHBoxLayout()
         self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("搜索原文 / 译文…")
+        self.search_input.setPlaceholderText(i18n.tr("vocab_search"))
         self.search_input.textChanged.connect(self.refresh)
         top.addWidget(self.search_input, 1)
-        refresh_btn = QPushButton("刷新")
+        refresh_btn = QPushButton(i18n.tr("vocab_refresh"))
         refresh_btn.clicked.connect(self.refresh)
         top.addWidget(refresh_btn)
         layout.addLayout(top)
 
-        self.table = QTableWidget(0, len(self.COLUMNS))
-        self.table.setHorizontalHeaderLabels(self.COLUMNS)
+        self.table = QTableWidget(0, len(self._columns))
+        self.table.setHorizontalHeaderLabels(self._columns)
         self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.table.verticalHeader().setVisible(False)
@@ -69,7 +72,7 @@ class VocabWindow(QWidget):
             return
         entry_id = item.data(Qt.ItemDataRole.UserRole)
         menu = QMenu(self)
-        delete_action = menu.addAction("删除该词条")
+        delete_action = menu.addAction(i18n.tr("vocab_delete"))
         chosen = menu.exec(self.table.viewport().mapToGlobal(pos))
         if chosen == delete_action:
             self._vocab.delete(entry_id)

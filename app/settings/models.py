@@ -5,10 +5,12 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, fields
 
 from app import constants
+from app.i18n import SUPPORTED as UI_LANGUAGES
 
 
 @dataclass
 class AppSettings:
+    language: str = "zh"  # 界面语言:zh / en
     capture_hotkey: str = constants.DEFAULT_CAPTURE_HOTKEY
     query_hotkey: str = constants.DEFAULT_QUERY_HOTKEY
     target_lang: str = constants.DEFAULT_TARGET_LANG
@@ -29,15 +31,18 @@ class AppSettings:
 
     # ---- 校验 ----
     def validate(self) -> list[str]:
+        """返回错误 key 列表(空 = 合法);文案由 UI 层经 i18n.tr 展示。"""
         errors: list[str] = []
         if not self.capture_hotkey or "+" not in self.capture_hotkey:
-            errors.append("截图快捷键不能为空,且需包含修饰键(如 ctrl+alt+t)")
+            errors.append("err_hotkey_capture")
         if not self.query_hotkey or "+" not in self.query_hotkey:
-            errors.append("输入翻译快捷键不能为空,且需包含修饰键")
+            errors.append("err_hotkey_query")
         if self.capture_hotkey == self.query_hotkey:
-            errors.append("两个快捷键不能相同")
+            errors.append("err_same_hotkey")
         if self.target_lang not in constants.SUPPORTED_LANGUAGES:
-            errors.append(f"不支持的目标语言:{self.target_lang}")
+            errors.append("err_target_lang")
         if self.source_lang != "auto" and self.source_lang not in constants.SUPPORTED_LANGUAGES:
-            errors.append(f"不支持的源语言:{self.source_lang}")
+            errors.append("err_source_lang")
+        if self.language not in UI_LANGUAGES:
+            errors.append("err_language")
         return errors

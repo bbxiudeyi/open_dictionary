@@ -1,10 +1,16 @@
-"""系统托盘:常驻入口 + 菜单。"""
+"""系统托盘:常驻入口 + 菜单。
+
+菜单只保留 生词本 / 设置 / 退出;截图与输入翻译的入口是全局热键
+(以及单击托盘 = 截图翻译)。语言切换时重建菜单。
+"""
 
 from __future__ import annotations
 
 from PySide6.QtCore import QObject, Signal
 from PySide6.QtGui import QAction, QColor, QFont, QIcon, QPainter, QPixmap
 from PySide6.QtWidgets import QMenu, QSystemTrayIcon
+
+from app import i18n
 
 
 def make_tray_icon() -> QIcon:
@@ -27,36 +33,43 @@ def make_tray_icon() -> QIcon:
 
 
 class TrayController(QObject):
-    capture_requested = Signal()
-    open_query = Signal()
     open_vocab = Signal()
     open_settings = Signal()
     quit = Signal()
+    # 单击托盘 = 快捷截图入口
+    capture_requested = Signal()
 
-    def __init__(self, hotkey_hint: str = "", parent: QObject | None = None) -> None:
+    def __init__(self, parent: QObject | None = None) -> None:
         super().__init__(parent)
         self.tray = QSystemTrayIcon(make_tray_icon())
-        self.tray.setToolTip(f"Open Dictionary — 划词翻译({hotkey_hint})")
+        self.tray.activated.connect(self._on_activated)
+        self._hotkey_hint = ""
+        self._rebuild()
+        self.tray.show()
+
+    def apply_language(self, settings) -> None:
+        """语言或热键设置变化后调用:重建菜单与提示。"""
+        self._hotkey_hint = settings.capture_hotkey
+        self._rebuild()
+
+    def _rebuild(self) -> None:
+        self.tray.setToolTip(
+            f"Open Dictionary — {i18n.tr('tray_tag')}({self._hotkey_hint})"
+            if self._hotkey_hint
+            else f"Open Dictionary — {i18n.tr('tray_tag')}"
+        )
         menu = QMenu()
-        act_capture = QAction(f"截图翻译({hotkey_hint})", menu)
-        act_capture.triggered.connect(self.capture_requested.emit)
-        act_query = QAction("输入翻译…", menu)
-        act_query.triggered.connect(self.open_query.emit)
-        act_vocab = QAction("生词本", menu)
+        act_vocab = QAction(i18n.tr("menu_vocab"), menu)
         act_vocab.triggered.connect(self.open_vocab.emit)
-        act_settings = QAction("设置", menu)
+        act_settings = QAction(i18n.tr("menu_settings"), menu)
         act_settings.triggered.connect(self.open_settings.emit)
-        act_quit = QAction("退出", menu)
+        act_quit = QAction(i18n.tr("menu_quit"), menu)
         act_quit.triggered.connect(self.quit.emit)
-        for act in (act_capture, act_query, act_vocab, act_settings):
-            menu.addAction(act)
+        menu.addAction(act_vocab)
+        menu.addAction(act_settings)
         menu.addSeparator()
         menu.addAction(act_quit)
-
         self.tray.setContextMenu(menu)
-        # 单击托盘 = 快捷入口
-        self.tray.activated.connect(self._on_activated)
-        self.tray.show()
 
     def show_message(self, title: str, message: str, msecs: int = 4000) -> None:
         """托盘气泡通知(main.py 里 flow.status 信号的出口)。"""

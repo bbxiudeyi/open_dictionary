@@ -9,6 +9,8 @@ from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QKeyEvent
 from PySide6.QtWidgets import QPushButton
 
+from app import i18n
+
 _MODIFIER_MAP = {
     Qt.KeyboardModifier.ControlModifier: "ctrl",
     Qt.KeyboardModifier.AltModifier: "alt",
@@ -50,9 +52,9 @@ class HotkeyEdit(QPushButton):
 
     def _refresh(self) -> None:
         if self._recording:
-            self.setText("请按下组合键(ESC 取消)…")
+            self.setText(i18n.tr("hotkey_recording"))
         else:
-            self.setText(self._combo or "(未设置)")
+            self.setText(self._combo or i18n.tr("hotkey_unset"))
 
     def mousePressEvent(self, event) -> None:
         self._recording = True
@@ -73,7 +75,7 @@ class HotkeyEdit(QPushButton):
         mods = [name for mod, name in _MODIFIER_MAP.items() if event.modifiers() & mod]
         main = _KEY_MAP.get(key)
         if main is None or not mods:
-            self.setText("需包含修饰键(ctrl/alt/shift/win)+ 普通键")
+            self.setText(i18n.tr("hotkey_need_mod"))
             return
         self._combo = "+".join([*mods, main])
         self._recording = False

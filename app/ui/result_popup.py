@@ -19,6 +19,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from app import i18n
+
 logger = logging.getLogger(__name__)
 
 _MARGIN = 12
@@ -55,14 +57,14 @@ class ResultPopup(QFrame):
             Qt.TextInteractionFlag.TextSelectableByMouse
         )
 
-        self.copy_btn = QPushButton("复制")
+        self.copy_btn = QPushButton(i18n.tr("popup_copy"))
         self.copy_btn.setFixedHeight(24)
         self.copy_btn.clicked.connect(self._copy)
         self.close_btn = QPushButton("✕")
         self.close_btn.setFixedSize(24, 24)
         self.close_btn.clicked.connect(self.close)
 
-        self.hint = QLabel("ESC 关闭 · 已存入生词本")
+        self.hint = QLabel(i18n.tr("popup_hint"))
         self.hint.setStyleSheet("color:#94a3b8; font-size:11px;")
         btns = QHBoxLayout()
         btns.addWidget(self.hint)

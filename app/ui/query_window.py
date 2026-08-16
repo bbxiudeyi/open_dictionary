@@ -11,11 +11,13 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from app import i18n
+
 
 class QueryWindow(QWidget):
     def __init__(self, flow, parent: QWidget | None = None) -> None:
         super().__init__(parent)
-        self.setWindowTitle("Open Dictionary — 输入翻译")
+        self.setWindowTitle(i18n.tr("query_title"))
         self.setWindowFlags(
             Qt.WindowType.Window
             | Qt.WindowType.WindowStaysOnTopHint  # 查词场景常浮在上面
@@ -26,13 +28,13 @@ class QueryWindow(QWidget):
         layout.setContentsMargins(16, 14, 16, 14)
 
         self.input = QLineEdit()
-        self.input.setPlaceholderText("输入要翻译的文本,回车翻译…")
+        self.input.setPlaceholderText(i18n.tr("query_placeholder"))
         self.input.returnPressed.connect(self._translate)
         layout.addWidget(self.input)
 
         self.result = QTextEdit()
         self.result.setReadOnly(True)
-        self.result.setPlaceholderText("译文将显示在这里(同时自动加入生词本)")
+        self.result.setPlaceholderText(i18n.tr("query_result_hint"))
         layout.addWidget(self.result, 1)
 
         self.status = QLabel(" ")
@@ -47,7 +49,7 @@ class QueryWindow(QWidget):
         text = self.input.text().strip()
         if not text:
             return
-        self.status.setText("翻译中…")
+        self.status.setText(i18n.tr("translating"))
         self._flow.translate_text(text)
 
     def _on_result(self, source: str, translated: str) -> None:

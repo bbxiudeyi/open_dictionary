@@ -20,6 +20,7 @@ from app.core.vocab import VocabStore
 from app.settings.store import SettingsStore
 from app.ui.capture_overlay import CaptureSession
 from app.ui.result_popup import ResultPopup
+from app import i18n
 from app.workers.ocr_worker import start_ocr_task
 from app.workers.translate_worker import start_translate_task
 
@@ -63,7 +64,7 @@ class TranslateFlow(QObject):
         if self._session is not None:
             return  # 已在框选中
         if not self._model_store.is_ready():
-            self.status.emit("翻译模型未就绪,请先在设置中下载(约 600MB)")
+            self.status.emit(i18n.tr("model_missing_status"))
             self.model_missing.emit()
             return
         self._close_popup()
@@ -83,12 +84,12 @@ class TranslateFlow(QObject):
         self._anchor = (logical_rect, screen)
         # 浮窗立即占位:松开鼠标就出现"识别中…",完成后原地更新为译文。
         # 托盘气泡不当进度条用(Windows 气泡 5 秒固定时长且不即时替换,会残留旧状态)。
-        self._ensure_popup("识别中…", "")
+        self._ensure_popup(i18n.tr("recognizing"), "")
 
         def on_error(msg: str) -> None:
-            self.status.emit(f"OCR 失败:{msg}")
+            self.status.emit(i18n.tr("ocr_failed").format(msg))
             if self._popup is not None:
-                self._popup.update_result(f"OCR 失败:{msg}", "")
+                self._popup.update_result(i18n.tr("ocr_failed").format(msg), "")
 
         start_ocr_task(self._ocr, image, self._on_ocr_done, on_error)
 
@@ -96,7 +97,7 @@ class TranslateFlow(QObject):
         self.ocr_text.emit(text)
         if not text:
             if self._popup is not None:
-                self._popup.update_result("未识别到文字", "")
+                self._popup.update_result(i18n.tr("ocr_empty"), "")
             return
         self._translate_and_show(text, origin="ocr")
 
@@ -105,9 +106,9 @@ class TranslateFlow(QObject):
         src = self._settings.source_lang
 
         def on_error(msg: str) -> None:
-            self.status.emit(f"翻译失败:{msg}")
+            self.status.emit(i18n.tr("translate_failed").format(msg))
             if origin == "ocr" and self._popup is not None:
-                self._popup.update_result(f"失败:{msg}", "")
+                self._popup.update_result(i18n.tr("popup_failed").format(msg), "")
 
         def on_done(result: str) -> None:
             if origin == "ocr" and self._popup is not None:
@@ -141,11 +142,11 @@ class TranslateFlow(QObject):
         if not text:
             return
         if not self._model_store.is_ready():
-            self.status.emit("翻译模型未就绪,请先在设置中下载(约 600MB)")
+            self.status.emit(i18n.tr("model_missing_status"))
             self.model_missing.emit()
             return
 
         def on_error(msg: str) -> None:
-            self.status.emit(f"翻译失败:{msg}")
+            self.status.emit(i18n.tr("translate_failed").format(msg))
 
         self._translate_and_show(text, origin="input")

@@ -44,6 +44,8 @@ ruff check app tests    # 代码风格
 便携调试:设置 `OPEN_DICTIONARY_HOME=D:/od-data` 重定向全部数据。
 
 默认热键:截图翻译 `Ctrl+Alt+T`,输入翻译 `Ctrl+Alt+Q`。
+托盘交互:单击图标 = 截图翻译;右键菜单 = 生词本 / 设置 / 退出。
+控制台里 `Ctrl+C` 可退出(已做信号处理,会正常注销热键)。
 
 ## 5. 打包发布
 

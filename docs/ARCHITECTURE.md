@@ -48,6 +48,7 @@
 | `core/vocab.py` | SQLite 生词本 CRUD | `check_same_thread=False` + 锁;WAL |
 | `core/model_store.py` | 模型下载/校验 | 断点续传(Range);最小体积校验;hf-mirror 可配 |
 | `controllers/translate_flow.py` | 状态机 | 唯一知道"整个流程"的地方 |
+| `ui/tray.py` | 系统托盘 | 蓝底"D"图标;右键菜单仅 生词本/设置/退出;单击 = 截图翻译;气泡只报错误与引导;语言切换时重建菜单 |
 | `ui/capture_overlay.py` | 冻结屏 + 框选 | 每屏一个遮罩窗口;选区从**冻结帧**裁剪(所见即所得) |
 | `ui/result_popup.py` | 译文浮窗 | 松开鼠标即占位("识别中…"),完成后原地更新;定位右→左→下;ESC 关闭 |
 | `ui/query_window.py` | 输入翻译 | 监听 `flow.result_ready` |

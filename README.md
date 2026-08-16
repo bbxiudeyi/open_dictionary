@@ -8,7 +8,7 @@ Snap-and-translate + vocabulary desktop tool for Windows. **Fully offline** — 
 
 - **Screenshot translate** — press the hotkey (default `Ctrl+Alt+T`), drag a region on screen, get OCR + translation in a popup right beside your selection. `ESC` to dismiss.
 - **Input translate** — press `Ctrl+Alt+Q` (or single-click the tray icon) and type any text.
-- **Vocabulary** — every translation is auto-saved to a local SQLite database, searchable and deletable.
+- **Vocabulary** — every translation is auto-saved to a local SQLite database: searchable, deletable, and exportable to CSV (Excel-friendly, UTF-8 BOM).
 - **Local translation model** — NLLB-200-distilled-600M running via CTranslate2 (int8, ~600 MB, pure CPU).
 - **UI language** — English / 中文, switchable in Settings.
 

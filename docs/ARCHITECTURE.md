@@ -52,7 +52,7 @@
 | `ui/result_popup.py` | 译文浮窗 | 松开鼠标即占位("识别中…"),完成后原地更新;定位右→左→下;ESC 关闭 |
 | `ui/query_window.py` | 输入翻译 | 监听 `flow.result_ready` |
 | `ui/settings_dialog.py` | 设置 + 模型下载 UI | 下载在后台线程,进度回调进 UI |
-| `ui/vocab_window.py` | 生词本浏览/搜索/删除 | 右键删除 |
+| `ui/vocab_window.py` | 生词本浏览/搜索/删除/导出 | 导出 UTF-8 BOM CSV(当前搜索结果);右键删除 |
 
 ## 3. 核心数据流
 
@@ -167,7 +167,7 @@ CREATE TABLE entries (
 
 ## 8. 路线图(未实现)
 
-- 生词导出 CSV / Anki
+- 生词导出 Anki 牌组格式(CSV 导出已实现)
 - 生词去重与复习统计
 - 结果浮窗钉住(pinned)模式
 - Wayland/macOS 适配(当前按 Windows 键盘与截屏特性开发)

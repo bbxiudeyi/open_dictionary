@@ -1,12 +1,19 @@
-"""生词本窗口:浏览 / 搜索 / 删除历史词条。"""
+"""生词本窗口:浏览 / 搜索 / 删除 / 导出历史词条。"""
 
 from __future__ import annotations
 
+import csv
+from datetime import datetime
+from pathlib import Path
+
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
+    QFileDialog,
     QHBoxLayout,
+    QLabel,
     QLineEdit,
     QMenu,
+    QMessageBox,
     QPushButton,
     QTableWidget,
     QTableWidgetItem,
@@ -39,6 +46,9 @@ class VocabWindow(QWidget):
         refresh_btn = QPushButton(i18n.tr("vocab_refresh"))
         refresh_btn.clicked.connect(self.refresh)
         top.addWidget(refresh_btn)
+        export_btn = QPushButton(i18n.tr("vocab_export"))
+        export_btn.clicked.connect(self._choose_dir_and_export)
+        top.addWidget(export_btn)
         layout.addLayout(top)
 
         self.table = QTableWidget(0, len(self._columns))
@@ -77,6 +87,42 @@ class VocabWindow(QWidget):
         if chosen == delete_action:
             self._vocab.delete(entry_id)
             self.refresh()
+
+    # ---- 导出 ----
+    def _choose_dir_and_export(self) -> None:
+        directory = QFileDialog.getExistingDirectory(self, i18n.tr("vocab_export"))
+        if not directory:
+            return  # 用户取消
+        filename = f"open-dictionary-vocab-{datetime.now():%Y%m%d-%H%M%S}.csv"
+        path = Path(directory) / filename
+        try:
+            count = self.export_to(path)
+        except OSError as exc:
+            QMessageBox.warning(self, i18n.tr("vocab_export"), i18n.tr("export_failed").format(exc))
+            return
+        QMessageBox.information(
+            self, i18n.tr("vocab_export"), i18n.tr("export_done").format(count, path)
+        )
+
+    def export_to(self, path) -> int:
+        """把当前搜索结果(无搜索 = 全部)导出为 UTF-8 BOM CSV,返回条数。
+
+        utf-8-sig 让 Excel 双击打开时中文不乱码。
+        """
+        rows = self._vocab.search(self.search_input.text().strip(), limit=10**7)
+        header = [
+            i18n.tr("col_time"), i18n.tr("col_source"), i18n.tr("col_result"),
+            i18n.tr("col_src_lang"), i18n.tr("col_tgt_lang"), i18n.tr("col_origin"),
+        ]
+        with open(path, "w", newline="", encoding="utf-8-sig") as fh:
+            writer = csv.writer(fh)
+            writer.writerow(header)
+            for r in rows:
+                writer.writerow([
+                    r["created_at"], r["source_text"], r["result_text"],
+                    r["src_lang"] or "", r["tgt_lang"], r["origin"],
+                ])
+        return len(rows)
 
     def show_and_focus(self) -> None:
         self.refresh()

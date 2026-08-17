@@ -39,6 +39,12 @@ Everything lives in `%APPDATA%\open-dictionary\`: `vocab.db` (vocabulary), `conf
 - [Architecture](docs/ARCHITECTURE.md) — layers, threading model, data flow, design decisions & pitfalls
 - [Development Guide](docs/DEVELOPMENT.md) — setup, model download, tests, packaging, troubleshooting
 
+## License
+
+- **Code**: MIT — see [LICENSE](LICENSE).
+- **Translation model** (NLLB-200-distilled-600M, downloaded at runtime, not bundled): CC-BY-NC 4.0 by Meta — **non-commercial use**. Commercial use requires a separate license from Meta or a different model.
+- OCR models (PP-OCR via RapidOCR) and dependencies are distributed under their own licenses.
+
 ## Project Layout
 
 ```

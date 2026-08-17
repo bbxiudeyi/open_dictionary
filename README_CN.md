@@ -39,6 +39,12 @@ python scripts\build.py
 - [架构设计](docs/ARCHITECTURE.md) —— 分层、线程模型、数据流、设计决策与坑
 - [开发指南](docs/DEVELOPMENT.md) —— 环境搭建、模型下载、测试、打包、排障
 
+## 许可证
+
+- **代码**:MIT,见 [LICENSE](LICENSE)。
+- **翻译模型**(NLLB-200-distilled-600M,运行时下载、不随包分发):Meta 的 CC-BY-NC 4.0,**仅限非商用**;商用需向 Meta 另行获取授权或更换模型。
+- OCR 模型(PP-OCR / RapidOCR)及各依赖遵循其自身许可。
+
 ## 目录速览
 
 ```
